@@ -7,13 +7,13 @@ using UnityEngine;
 /// </summary>
 public class DNA : MonoBehaviour
 {
-    public List<Vector3> genes = new();
+    public List<Vector2> genes = new();
 
     /// <summary>
     /// Constructs a new DNA:: DNA object.
     /// </summary>
     /// <param name="genomeLength">The length of the genome</param>
-    public DNA(int genomeLength = 50) : base()
+    public DNA(int genomeLength = 50) 
     {
         for (int i = 0; i < genomeLength; i++)
         {
@@ -28,7 +28,7 @@ public class DNA : MonoBehaviour
     /// <param name="parent">The parent DNA object</param>
     /// <param name="partner">The partner DNA object</param>
     /// <param name="mutationRate">The mutation rate, default is 0.01f</param>
-    public DNA(DNA parent, DNA partner, float mutationRate = 0.01f) : base()
+    public DNA(DNA parent, DNA partner, float mutationRate = 0.01f) 
     {
         for (int i = 0; i < parent.genes.Count; i++)
         {
