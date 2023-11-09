@@ -3,7 +3,8 @@
 # =============== #
 # Unity generated #
 # =============== #
-[Aa]ssets/
+/[Aa]ssets/*
+!/Assets/scripts
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
