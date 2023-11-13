@@ -5,6 +5,7 @@
 # =============== #
 /[Aa]ssets/*
 !/Assets/scripts
+!/Assets/prefabs
 [Tt]emp/
 [Oo]bj/
 [Bb]uild/
