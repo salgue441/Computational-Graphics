@@ -6,12 +6,16 @@ public class Boss : MonoBehaviour
 {
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 40f;
+    [SerializeField] private float moveSpeed = 45f;
+    [SerializeField] private float moveDistance = 5000f;
 
     private Transform _transform;
     private readonly float attackInterval = 2f;
     private int bulletCount = 0;
     private bool isAttacking = false;
-    
+    private float moveDirection = 1f;
+    private float originalX;
+
     public int BulletCount => bulletCount;
 
     /// <summary>
@@ -20,8 +24,33 @@ public class Boss : MonoBehaviour
     private void Start()
     {
         _transform = transform;
+        originalX = _transform.position.x;
+
         InvokeRepeating(nameof(Routines), 0f, attackInterval);
     }
+
+    /// <summary>
+    /// </summary>
+    private void Update()
+    {
+        MoveBoss();
+    }
+
+    /// <summary>
+    /// Moves the boss around the X axis of the screen.
+    /// </summary>
+    private void MoveBoss()
+    { 
+        Vector3 position = _transform.position;
+        position.x += moveSpeed * moveDirection * Time.deltaTime;
+        _transform.position = position;
+
+        if (Mathf.Abs(position.x - originalX) > moveDistance)
+        {
+            moveDirection *= -1f;
+        }
+    }
+
 
     /// <summary>
     /// Sets the different attack routines for the boss
@@ -242,8 +271,6 @@ public class Boss : MonoBehaviour
 
         isAttacking = false;
     }
-
-
 
     /// <summary>
     /// Handles firing the bullets from the boss
