@@ -7,139 +7,42 @@ public class Boss : MonoBehaviour
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 40f;
 
-    private Coroutine currentRoutine;
-    private readonly float attackInterval = 0.1f;
+    private Transform _transform;
+    private readonly float attackInterval = 2f;
     private int bulletCount = 0;
-    public int BulletCount
-    {
-        get { return bulletCount; }
-    }
+    private bool isAttacking = false;
+    
+    public int BulletCount => bulletCount;
 
+    /// <summary>
+    /// 
+    /// </summary>
     private void Start()
     {
-        StartCoroutine(Routines());
+        _transform = transform;
+        InvokeRepeating(nameof(Routines), 0f, attackInterval);
     }
 
     /// <summary>
-    /// Selects the attack pattern and fires the bullets.
+    /// Sets the different attack routines for the boss
     /// </summary>
-    /// <returns>The routine</returns>
-    private IEnumerator Routines()
+    private void Routines()
     {
-        while (true)
+        if (!isAttacking)
         {
-            if (currentRoutine != null)
-                StopCoroutine(currentRoutine);
+            int randomAttack = Random.Range(1, 8);
 
-            yield return new WaitForSeconds(attackInterval);
-
-            int randomAttack = Random.Range(0, 7);
             switch (randomAttack)
             {
-                case 0:
-                    currentRoutine = StartCoroutine(StraightShots());
-                    break;
-
-                case 1:
-                    currentRoutine = StartCoroutine(CrossShots());
-                    break;
-
-                case 2:
-                    currentRoutine = StartCoroutine(CircleShots());
-                    break;
-
-                case 3:
-                    currentRoutine = StartCoroutine(SpiralShots());
-                    break;
-
-                case 4:
-                    currentRoutine = StartCoroutine(WaveShots());
-                    break;
-
-                case 5:
-                    currentRoutine = StartCoroutine(RandomBurstShots());
-                    break;
+                case 1: StartCoroutine(FlowerShots()); break;
+                case 2: StartCoroutine(SpiralShots()); break;
+                case 3: StartCoroutine(RandomShots()); break;
+                case 4: StartCoroutine(WaveShots()); break;
+                case 5: StartCoroutine(CircleShots()); break;
+                case 6: StartCoroutine(GridShots()); break;
+                case 7: StartCoroutine(HelixShots()); break;
             }
-
-            yield return new WaitUntil(() => currentRoutine == null);
-            yield return new WaitForSeconds(attackInterval);
         }
-    }
-
-    /// <summary>
-    /// Fires the bullets in a straight line.
-    /// </summary>
-    /// <returns>The coroutine.</returns>
-    private IEnumerator StraightShots()
-    {
-        yield return RepeatShooting(10f, 0.5f, transform.forward);
-        currentRoutine = null;
-    }
-
-    /// <summary>
-    /// Fires the bullets in a double cross pattern.
-    /// </summary>
-    /// <returns>The coroutine</returns>
-    private IEnumerator CrossShots()
-{
-    float duration = 10f;
-    float interval = 0.05f; 
-    float startTime = Time.time;
-
-    while (Time.time - startTime < duration)
-    {
-        FireBullet(transform.forward);   
-        FireBullet(-transform.forward);  
-        FireBullet(transform.right);     
-        FireBullet(-transform.right);    
-
-        yield return new WaitForSeconds(interval);
-    }
-
-    currentRoutine = null;
-}
-
-
-    private IEnumerator CircleShots()
-    {
-        float duration = 10f;
-        float startTime = Time.time;
-
-        while (Time.time - startTime < duration)
-        {
-            float angle = 0f;
-            while (angle < 360f)
-            {
-                FireBullet(Quaternion.Euler(0f, angle, 0f) * transform.forward * 2f);
-                angle += 10f;
-            }
-
-            yield return new WaitForSeconds(0.5f);
-        }
-
-        currentRoutine = null;
-    }
-
-    /// <summary>
-    /// Repeats the shooting for a certain duration and interval in a given direction.
-    /// </summary>
-    /// <param name="duration">Duration of the pattern</param>
-    /// <param name="interval">Interval between bullets</param>
-    /// <param name="directions">Direction of bullets</param>
-    /// <returns></returns>
-    private IEnumerator RepeatShooting(float duration, float interval, 
-        params Vector3[] directions)
-    {
-        float startTime = Time.time;
-        while (Time.time - startTime < duration)
-        {
-            foreach (var direction in directions)
-                FireBullet(direction);
-            
-            yield return new WaitForSeconds(interval);
-        }
-
-        currentRoutine = null;
     }
 
     /// <summary>
@@ -148,77 +51,204 @@ public class Boss : MonoBehaviour
     /// <returns>The coroutine.</returns>
     private IEnumerator SpiralShots()
     {
+        isAttacking = true;
+
         float duration = 10f;
         float startTime = Time.time;
         float angle = 0f;
-        float spiralRate = 5f; 
+        float angleIncrement = 5f;
 
         while (Time.time - startTime < duration)
         {
-            FireBullet(Quaternion.Euler(0f, angle, 0f) * transform.forward * 2f);
-            angle += spiralRate;
-            spiralRate += 0.1f; 
+            FireBullet(Quaternion.Euler(0, 0, angle) * Vector2.up);
+            angle += angleIncrement;
 
             yield return new WaitForSeconds(0.1f);
         }
 
-        currentRoutine = null;
+        isAttacking = false;
     }
 
     /// <summary>
-    /// Shoots in a wave pattern from the parent's center.
+    /// Shoots in a wave pattern from the parent's center
     /// </summary>
-    /// <returns>The coroutine.</returns>
     private IEnumerator WaveShots()
     {
+        isAttacking = true;
+
         float duration = 10f;
         float startTime = Time.time;
-        float waveFrequency = 5f; 
+        float waveFrequency = 0.5f;
 
         while (Time.time - startTime < duration)
         {
-            for (float angle = 0; angle < 360; angle += 10)
+            for (float angle = 0; angle < 360; angle += 5)
             {
-                Vector3 direction = Quaternion.Euler(0f, angle, 0f) * transform.forward * 2f    ;
+                Vector3 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
+                direction += 2f * Mathf.Sin(Time.time * waveFrequency) * transform.up;
 
-                direction += 2f * Mathf.Sin(Time.time * waveFrequency) * transform.up; 
                 FireBullet(direction);
+            }
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isAttacking = false;
+    }
+
+    /// <summary>
+    /// Shoots in a wave pattern from the parent's center
+    /// </summary>
+    private IEnumerator RandomShots()
+    {
+        isAttacking = true;
+
+        float duration = 10f;
+        float startTime = Time.time;
+        float waveFrequency = 0.5f;
+
+        while (Time.time - startTime < duration)
+        {
+            for (float angle = 0; angle < 360;  angle += 5)
+            {
+                Vector3 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
+
+                direction += Mathf.Sin(Time.time * waveFrequency) * Vector3.right * 5f;
+
+                FireBullet(direction);
+            }
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isAttacking = false;
+    }
+
+    /// <summary>
+    /// Produces flower shots with more petals.
+    /// </summary>
+    private IEnumerator FlowerShots()
+    {
+        isAttacking = true;
+        int totalIterations = 100;
+        float angleIncrement = 1f; 
+
+        for (int i = 0; i < totalIterations; i += (int)angleIncrement)
+        {
+            // Original petals
+            FireBullet(Quaternion.Euler(0, 0, i % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 90) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 180) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 270) % 360) * Vector2.up);
+
+            FireBullet(Quaternion.Euler(0, 0, -i % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 90) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 180) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 270) % 360) * Vector2.up);
+
+            // Additional petals
+            FireBullet(Quaternion.Euler(0, 0, (i + 45) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 135) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 225) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 315) % 360) * Vector2.up);
+
+            FireBullet(Quaternion.Euler(0, 0, (-i + 45) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 135) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 225) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 315) % 360) * Vector2.up);
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isAttacking = false;
+    }
+
+    /// <summary>
+    /// Shoots in a circle pattern from the parent's center
+    /// </summary>
+    private IEnumerator CircleShots()
+    {
+        isAttacking = true;
+
+        float duration = 10f;
+        float startTime = Time.time;
+
+        while (Time.time - startTime < duration)
+        {
+            float angle = 0f;
+            while (angle < 360f)
+            {
+                FireBullet(Quaternion.Euler(0f, 0f, angle) * transform.forward * 2f);
+                angle += 10f;
             }
 
             yield return new WaitForSeconds(0.5f);
         }
 
-        currentRoutine = null;
+        isAttacking = false;
     }
 
     /// <summary>
-    /// Shoots in random directions from the parent's center.
+    /// Shoots in a grid pattern from the parent's center
     /// </summary>
-    /// <returns>The coroutine.</returns>
-    private IEnumerator RandomBurstShots()
+    private IEnumerator GridShots()
     {
+        isAttacking = true;
+
         float duration = 10f;
         float startTime = Time.time;
-        int burstCount = 20; 
+        float gridSpacing = 10f; 
 
         while (Time.time - startTime < duration)
         {
-            for (int i = 0; i < burstCount; i++)
+            for (float x = -30f; x <= 30f; x += gridSpacing)
             {
-                Vector3 randomDirection = Random.insideUnitSphere.normalized;
-                FireBullet(randomDirection);
+                for (float y = -30f; y <= 30f; y += gridSpacing)
+                {
+                    Vector3 direction = new Vector3(x, y, 0).normalized;
+                    FireBullet(direction);
+                }
             }
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1f); 
         }
 
-        currentRoutine = null;
+        isAttacking = false;
     }
 
     /// <summary>
-    /// Fires a bullet in a given direction.
+    /// Shoots in a helix pattern from the parent's center
     /// </summary>
-    /// <param name="direction">Direction of the bullet</param>
+    private IEnumerator HelixShots()
+    {
+        isAttacking = true;
+
+        float duration = 10f;
+        float startTime = Time.time;
+        float angle = 0f;
+        float helixSpacing = 5f; 
+
+        while (Time.time - startTime < duration)
+        {
+            FireBullet(Quaternion.Euler(0f, 0f, angle) * Vector2.up);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 180f) * Vector2.up);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 90f) * Vector2.up);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 270f) * Vector2.up);
+
+            angle += helixSpacing;
+
+            yield return new WaitForSeconds(0.1f);
+        }
+
+        isAttacking = false;
+    }
+
+
+
+    /// <summary>
+    /// Handles firing the bullets from the boss
+    /// </summary>
+    /// <param name="direction">Direction to shoot the bullet</param>
     private void FireBullet(Vector3 direction)
     {
         if (bulletPrefab == null)
@@ -227,10 +257,10 @@ public class Boss : MonoBehaviour
             return;
         }
 
-        Vector3 spawnOffset = direction.normalized * 2.0f;
+        Vector3 spawnOffset = direction.normalized * 20.0f;
         Vector3 spawnPosition = transform.position + spawnOffset;
 
-        GameObject bullet = Instantiate(bulletPrefab, spawnPosition, 
+        GameObject bullet = Instantiate(bulletPrefab, spawnPosition,
             Quaternion.LookRotation(direction));
 
         bullet.GetComponent<Rigidbody>().velocity = direction * bulletSpeed;
