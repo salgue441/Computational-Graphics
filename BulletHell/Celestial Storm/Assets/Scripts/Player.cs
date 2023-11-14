@@ -2,77 +2,97 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private float thrustForce = 100f;
-    [SerializeField] private float rotationSpeed = 50f;
-    [SerializeField] private float maxVelocity = 50f;
+    [SerializeField] private float moveSpeed = 100f;
+    [SerializeField] private KeyCode slowDownKey = KeyCode.LeftShift;
+    [SerializeField] private float slowDownFactor = 0.5f;
+    [SerializeField] private KeyCode shootKey = KeyCode.Space;
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private float bulletSpeed = 40f;
 
-    private float pitchInput;
-    private float yawInput;
-    private float rollInput;
-    private float thrustInput;
     private Rigidbody rb;
+    private float horizontalInput;
+    private float verticalInput;
 
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
-
-        rb.angularDrag = 0f;
-        rb.drag = 0f;
+        rb.isKinematic = true;
     }
 
     private void Update()
     {
         GetInputs();
+        MovePlayer();
+        HandleTimeScale();
+        HandleShooting();
     }
 
     /// <summary>
-    /// Gets the inputs from the player.
+    /// Gets the horizontal input from the player.
     /// </summary>
     private void GetInputs()
     {
-        pitchInput = Input.GetAxis("Pitch");
-        yawInput = Input.GetAxis("Yaw");
-        rollInput = Input.GetAxis("Roll");
-        thrustInput = Input.GetAxis("Thrust");
+        horizontalInput = Input.GetAxis("horizontal");
+        verticalInput = Input.GetAxis("vertical");
     }
 
     /// <summary>
-    /// Moves the shuttle with realistic space physics.
+    /// Moves the player horizontally.
     /// </summary>
-    private void FixedUpdate()
-    {
-        ApplyThrust();
-        ApplyRotation();
-    }
-
-    private void ApplyThrust()
-    {
-        if (thrustInput > 0)
-        {
-            rb.AddRelativeForce(thrustForce * thrustInput * Time.deltaTime * Vector3.forward);
-        }
-
-        if (rb.velocity.magnitude > maxVelocity)
-        {
-            rb.velocity = rb.velocity.normalized * maxVelocity;
-        }
-    }
-
-    private void ApplyRotation()
+    private void MovePlayer()
     { 
-        float pitch = pitchInput * rotationSpeed * Time.deltaTime;
-        float yaw = yawInput * rotationSpeed * Time.deltaTime;
-        float roll = rollInput * rotationSpeed * Time.deltaTime;
+        Vector3 position = transform.position;
 
-        transform.Rotate(pitch, yaw, roll);
+        float adjustedSpeed = moveSpeed / Time.timeScale;
 
-        if (pitchInput != 0 || yawInput != 0 || rollInput != 0)
+        position.x += adjustedSpeed * horizontalInput * Time.deltaTime;
+        position.y += adjustedSpeed * verticalInput * Time.deltaTime;
+
+        transform.position = position;
+    }
+
+    /// <summary>
+    /// Slows down the time scale when the player holds down the slow down key.
+    /// </summary>
+    private void HandleTimeScale()
+    {
+        if (slowDownKey != KeyCode.None && Input.GetKey(slowDownKey))
         {
-            rb.angularDrag = 0.5f;
+            Time.timeScale = slowDownFactor;
         }
         else
         {
-            rb.angularDrag = 0f;
+            Time.timeScale = 1f;
+        }
+    }
+
+    /// <summary>
+    /// Handles the shooting mechanism of the player.
+    /// </summary>
+    private void HandleShooting()
+    {
+        if (Input.GetKeyDown(shootKey))
+        {
+            ShootBullet();
+        }
+    }
+
+    /// <summary>
+    /// Instantiates and shoots a bullet from the player's position.
+    /// </summary>
+    private void ShootBullet()
+    {
+        if (bulletPrefab != null)
+        {
+            GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+            if (bullet.TryGetComponent<Rigidbody>(out var bulletRb))
+            {
+                bulletRb.AddForce(transform.forward * bulletSpeed);
+            }
+        }
+        else
+        {
+            Debug.LogError("Bullet prefab is not assigned!");
         }
     }
 }
