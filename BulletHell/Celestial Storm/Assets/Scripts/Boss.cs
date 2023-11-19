@@ -313,6 +313,7 @@ public class Boss : MonoBehaviour
         }
 
         bulletCount++;
+        Destroy(bullet, 10f);
     }
 
     /// <summary>

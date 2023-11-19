@@ -10,7 +10,7 @@ public class Player : MonoBehaviour
     [SerializeField] private float bulletSpeed = 40f;
 
     private int bulletCount = 0;
-    private int playerHealth = 5;
+    private int playerHealth = 10;
     public int BulletCount => bulletCount;
     public int PlayerHealth => playerHealth;
 

@@ -15,6 +15,7 @@ public class Enemy : MonoBehaviour
     private int bulletCount = 0;
     private Vector3 targetPosition;
     private float lastMovementChangeTime;
+    private bool isAttacking = false;
 
     public int BulletCount => bulletCount;
 
@@ -35,7 +36,7 @@ public class Enemy : MonoBehaviour
     private void Start()
     {
         _transform = transform;
-        StartCoroutine(StraightShots());
+        InvokeRepeating(nameof(Attacks), 0f, 3f);
     }
 
     /// <summary>
@@ -79,11 +80,61 @@ public class Enemy : MonoBehaviour
         _transform.position = Vector3.MoveTowards(_transform.position, targetPosition, moveSpeed * Time.deltaTime);
     }
 
+    /// <summary>
+    /// Sets a random position for the enemy to move to
+    /// </summary>
     private void SetRandomTargetPosition()
     {
-        float randomX = Random.Range(-600, 800f);
-        float randomY = Random.Range(-400f, 400f);
+        float randomX = Random.Range(-250f, 250f);
+        float randomY = Random.Range(-150f, 150f);
         targetPosition = new Vector3(randomX, randomY, 0);
+    }
+
+    /// <summary>
+    /// Sets the enemy's attack pattern
+    /// </summary>
+    private void Attacks()
+    {
+        if (!isAttacking)
+        {
+            int randomAttack = Random.Range(1, 3);
+
+            switch (randomAttack)
+            {
+                case 1:
+                    StartCoroutine(StraightShots());
+                    break;
+
+                case 2:
+                    StartCoroutine(CircleShots());
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Shoots in a circle pattern from the parent's center
+    /// </summary>
+    private IEnumerator CircleShots()
+    {
+        isAttacking = true;
+
+        float duration = 10f;
+        float startTime = Time.time;
+
+        while (Time.time - startTime < duration)
+        {
+            float angle = 0f;
+            while (angle < 360f)
+            {
+                FireBullet(Quaternion.Euler(0f, 0f, angle) * transform.forward * 2f);
+                angle += 10f;
+            }
+
+            yield return new WaitForSeconds(3f);
+        }
+
+        isAttacking = false;
     }
 
 
@@ -93,7 +144,11 @@ public class Enemy : MonoBehaviour
     /// <returns>The coroutine.</returns>
     private IEnumerator StraightShots()
     {
+        isAttacking = true;
+
         yield return StartCoroutine(RepeatShooting(10f, 0.5f, Vector3.down));
+
+        isAttacking = false;
     }
 
     /// <summary>
@@ -129,7 +184,7 @@ public class Enemy : MonoBehaviour
             return;
         }
 
-        Vector3 spawnOffset = direction.normalized * 10.0f;
+        Vector3 spawnOffset = direction.normalized * 20.0f;
         Vector3 spawnPosition = transform.position + spawnOffset;
 
         GameObject bullet = Instantiate(bulletPrefab, spawnPosition,
