@@ -9,22 +9,51 @@ public class Player : MonoBehaviour
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private float bulletSpeed = 40f;
 
+    private int bulletCount = 0;
+    private int playerHealth = 5;
+    public int BulletCount => bulletCount;
+    public int PlayerHealth => playerHealth;
+
     private Rigidbody rb;
     private float horizontalInput;
     private float verticalInput;
 
+    /// <summary>
+    /// Sets the rigidbody of the player to kinematic.
+    /// </summary>
     private void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = true;
     }
 
+    /// <summary>
+    /// Updates the player's movement and shooting.
+    /// </summary>
     private void Update()
     {
         GetInputs();
         MovePlayer();
         HandleTimeScale();
         HandleShooting();
+    }
+
+    /// <summary>
+    /// Checks if the player is being hit by an enemy bullet.
+    /// </summary>
+    /// <param name="other">The object that collided with the hitbox</param>
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("EnemyBullet"))
+        {
+            playerHealth--;
+            Destroy(other.gameObject);
+
+            if (playerHealth <= 0)
+            {
+                Destroy(gameObject);
+            }
+        }
     }
 
     /// <summary>
@@ -78,21 +107,42 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// Instantiates and shoots a bullet from the player's position.
+    /// Instantiates and shoots a bullet from the player's position in the Y axis.
     /// </summary>
     private void ShootBullet()
     {
-        if (bulletPrefab != null)
-        {
-            GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-            if (bullet.TryGetComponent<Rigidbody>(out var bulletRb))
-            {
-                bulletRb.AddForce(transform.forward * bulletSpeed);
-            }
-        }
-        else
+        if (bulletPrefab == null)
         {
             Debug.LogError("Bullet prefab is not assigned!");
+            return;
         }
+
+        GameObject bullet = Instantiate(bulletPrefab, transform.position,
+            Quaternion.LookRotation(Quaternion.Euler(0f, 0f, 0f) * Vector2.up));
+        Rigidbody bulletRb = bullet.GetComponent<Rigidbody>();
+
+        bullet.GetComponent<Bullet>().SetPlayer(this);
+
+        bulletRb.velocity = Vector3.up * bulletSpeed;
+        bulletCount++;
+
+        Destroy(bullet, 5f);
+
+    }
+
+    /// <summary>
+    /// Resets the bullet count to 0.
+    /// </summary>
+    public void ResetBulletCount()
+    {
+        bulletCount = 0;
+    }
+
+    /// <summary>
+    /// Decreases the bullet count.
+    /// </summary>
+    public void DecreaseBulletCount()
+    {
+        bulletCount--;
     }
 }

@@ -6,7 +6,9 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [SerializeField] private float speed = 40f;
+
     private Boss boss;
+    private Player player;
 
     /// <summary>
     /// Destroys the bullet after some time 
@@ -14,6 +16,11 @@ public class Bullet : MonoBehaviour
     private void Start()
     {
         Destroy(gameObject, 5f);
+    }
+
+    public void SetPlayer(Player player)
+    {
+        this.player = player;
     }
 
     /// <summary>
@@ -42,6 +49,11 @@ public class Bullet : MonoBehaviour
         if (boss != null)
         {
             boss.DecreaseBulletCount();
+        }
+
+        if (player != null)
+        {
+            player.DecreaseBulletCount();
         }
     }
 }

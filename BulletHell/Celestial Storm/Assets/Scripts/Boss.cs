@@ -1,5 +1,5 @@
+using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Boss : MonoBehaviour
@@ -15,6 +15,7 @@ public class Boss : MonoBehaviour
     private bool isAttacking = false;
     private float moveDirection = 1f;
     private float originalX;
+    private int health = 10;
 
     public int BulletCount => bulletCount;
 
@@ -34,6 +35,20 @@ public class Boss : MonoBehaviour
     private void Update()
     {
         MoveBoss();
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("PlayerBullet"))
+        {
+            health--;
+            Destroy(other.gameObject);
+
+            if (health <= 0)
+            {
+                Destroy(gameObject);
+            }
+        }
     }
 
     /// <summary>
@@ -59,7 +74,7 @@ public class Boss : MonoBehaviour
     {
         if (!isAttacking)
         {
-            int randomAttack = Random.Range(1, 8);
+            int randomAttack = UnityEngine.Random.Range(1, 8);
 
             switch (randomAttack)
             {
@@ -89,7 +104,7 @@ public class Boss : MonoBehaviour
 
         while (Time.time - startTime < duration)
         {
-            FireBullet(Quaternion.Euler(0, 0, angle) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, angle) * Vector2.up, Color.red);
             angle += angleIncrement;
 
             yield return new WaitForSeconds(0.1f);
@@ -116,7 +131,7 @@ public class Boss : MonoBehaviour
                 Vector3 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
                 direction += 2f * Mathf.Sin(Time.time * waveFrequency) * transform.up;
 
-                FireBullet(direction);
+                FireBullet(direction, Color.blue);
             }
 
             yield return new WaitForSeconds(0.1f);
@@ -142,9 +157,8 @@ public class Boss : MonoBehaviour
             {
                 Vector3 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
 
-                direction += Mathf.Sin(Time.time * waveFrequency) * Vector3.right * 5f;
-
-                FireBullet(direction);
+                direction += 5f * Mathf.Sin(Time.time * waveFrequency) * Vector3.right;
+                FireBullet(direction, Color.cyan);
             }
 
             yield return new WaitForSeconds(0.1f);
@@ -165,26 +179,26 @@ public class Boss : MonoBehaviour
         for (int i = 0; i < totalIterations; i += (int)angleIncrement)
         {
             // Original petals
-            FireBullet(Quaternion.Euler(0, 0, i % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 90) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 180) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 270) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, i % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 90) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 180) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 270) % 360) * Vector2.up, Color.green);
 
-            FireBullet(Quaternion.Euler(0, 0, -i % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 90) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 180) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 270) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, -i % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 90) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 180) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 270) % 360) * Vector2.up, Color.green);
 
             // Additional petals
-            FireBullet(Quaternion.Euler(0, 0, (i + 45) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 135) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 225) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (i + 315) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (i + 45) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 135) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 225) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (i + 315) % 360) * Vector2.up, Color.green);
 
-            FireBullet(Quaternion.Euler(0, 0, (-i + 45) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 135) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 225) % 360) * Vector2.up);
-            FireBullet(Quaternion.Euler(0, 0, (-i + 315) % 360) * Vector2.up);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 45) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 135) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 225) % 360) * Vector2.up, Color.green);
+            FireBullet(Quaternion.Euler(0, 0, (-i + 315) % 360) * Vector2.up, Color.green);
 
             yield return new WaitForSeconds(0.1f);
         }
@@ -207,7 +221,7 @@ public class Boss : MonoBehaviour
             float angle = 0f;
             while (angle < 360f)
             {
-                FireBullet(Quaternion.Euler(0f, 0f, angle) * transform.forward * 2f);
+                FireBullet(Quaternion.Euler(0f, 0f, angle) * transform.forward * 2f, Color.magenta);
                 angle += 10f;
             }
 
@@ -235,7 +249,7 @@ public class Boss : MonoBehaviour
                 for (float y = -30f; y <= 30f; y += gridSpacing)
                 {
                     Vector3 direction = new Vector3(x, y, 0).normalized;
-                    FireBullet(direction);
+                    FireBullet(direction, Color.yellow);
                 }
             }
 
@@ -259,10 +273,10 @@ public class Boss : MonoBehaviour
 
         while (Time.time - startTime < duration)
         {
-            FireBullet(Quaternion.Euler(0f, 0f, angle) * Vector2.up);
-            FireBullet(Quaternion.Euler(0f, 0f, angle + 180f) * Vector2.up);
-            FireBullet(Quaternion.Euler(0f, 0f, angle + 90f) * Vector2.up);
-            FireBullet(Quaternion.Euler(0f, 0f, angle + 270f) * Vector2.up);
+            FireBullet(Quaternion.Euler(0f, 0f, angle) * Vector2.up, Color.white);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 180f) * Vector2.up, Color.white);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 90f) * Vector2.up, Color.white);
+            FireBullet(Quaternion.Euler(0f, 0f, angle + 270f) * Vector2.up, Color.white);
 
             angle += helixSpacing;
 
@@ -276,7 +290,7 @@ public class Boss : MonoBehaviour
     /// Handles firing the bullets from the boss
     /// </summary>
     /// <param name="direction">Direction to shoot the bullet</param>
-    private void FireBullet(Vector3 direction)
+    private void FireBullet(Vector3 direction, Color bulletColor)
     {
         if (bulletPrefab == null)
         {
@@ -284,7 +298,7 @@ public class Boss : MonoBehaviour
             return;
         }
 
-        Vector3 spawnOffset = direction.normalized * 20.0f;
+        Vector3 spawnOffset = direction.normalized * 25.0f;
         Vector3 spawnPosition = transform.position + spawnOffset;
 
         GameObject bullet = Instantiate(bulletPrefab, spawnPosition,
@@ -292,6 +306,11 @@ public class Boss : MonoBehaviour
 
         bullet.GetComponent<Rigidbody>().velocity = direction * bulletSpeed;
         bullet.GetComponent<Bullet>().SetBoss(this);
+
+        if (bullet.TryGetComponent<MeshRenderer>(out var bulletRender))
+        {
+            bulletRender.material.color = bulletColor;
+        }
 
         bulletCount++;
     }
